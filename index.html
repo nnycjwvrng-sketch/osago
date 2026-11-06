@@ -13,53 +13,36 @@
     html, body {
       margin: 0;
       padding: 0;
+      height: 100%;
       background: #fff;
+      overflow: hidden; /* скроллится только содержимое iframe */
     }
 
-    /* обычная прокрутка страницы, без overflow:hidden и без фиксированной высоты */
-    body {
-      min-height: 100vh;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    /* отступ под шапку Telegram в полноэкранном режиме */
-    #top-space {
-      height: calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px));
-    }
-
-    /* отступ снизу под системную полосу iPhone */
-    #bottom-space {
-      height: calc(var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 16px);
-    }
-
-    /* высоту выставляет ppdw.js, мы задаём только стартовую */
     #ppdwi {
-      display: block;
+      position: fixed;
+      left: 0;
+      right: 0;
+      /* под шапку Telegram в полноэкранном режиме */
+      top: calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px));
+      /* под системную полосу iPhone */
+      bottom: var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
       width: 100%;
-      min-width: 320px;
-      height: 650px;
+      height: auto;
       border: none;
       margin: 0;
       padding: 0;
-      overflow: hidden;
     }
   </style>
 </head>
 
 <body>
 
-  <div id="top-space"></div>
-
   <iframe
     src="https://b2c.pampadu.ru/index.html#377d763e-f276-4ef0-8e95-60898c3dc4af"
     id="ppdwi"
-    scrolling="no"
+    scrolling="yes"
     allow="clipboard-write">
   </iframe>
-
-  <div id="bottom-space"></div>
-
-  <script src="https://b2c.pampadu.ru/ppdw.js"></script>
 
   <script>
     const tg = window.Telegram.WebApp;
