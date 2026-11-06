@@ -15,34 +15,65 @@
       padding: 0;
       height: 100%;
       background: #fff;
-      overflow: hidden; /* скроллится только содержимое iframe */
+      overflow: hidden;
     }
 
-    #ppdwi {
+    /* единственная прокручиваемая область */
+    #scroller {
       position: fixed;
       left: 0;
       right: 0;
-      /* под шапку Telegram в полноэкранном режиме */
-      top: calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px));
-      /* под системную полосу iPhone */
-      bottom: var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+      top: 0;
+      bottom: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      touch-action: pan-y;
+      padding-top: calc(var(--tg-safe-area-inset-top, env(safe-area-inset-top, 0px)) + var(--tg-content-safe-area-inset-top, 0px));
+      padding-bottom: calc(var(--tg-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 16px);
+    }
+
+    #ppdwi {
+      display: block;
       width: 100%;
-      height: auto;
+      min-width: 320px;
+      /* не меньше видимой области; больше - решает ppdw.js */
+      min-height: calc(100vh - 120px);
       border: none;
       margin: 0;
       padding: 0;
     }
+
+    #dbg {
+      display: none;
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      max-height: 35%;
+      overflow: auto;
+      background: rgba(0,0,0,.85);
+      color: #0f0;
+      font: 11px monospace;
+      padding: 6px;
+      z-index: 99999;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
-
 <body>
 
-  <iframe
-    src="https://b2c.pampadu.ru/index.html#377d763e-f276-4ef0-8e95-60898c3dc4af"
-    id="ppdwi"
-    scrolling="yes"
-    allow="clipboard-write">
-  </iframe>
+  <div id="scroller">
+    <iframe
+      src="https://b2c.pampadu.ru/index.html#377d763e-f276-4ef0-8e95-60898c3dc4af"
+      id="ppdwi"
+      scrolling="yes"
+      allow="clipboard-write">
+    </iframe>
+  </div>
+
+  <div id="dbg"></div>
+
+  <script src="https://b2c.pampadu.ru/ppdw.js"></script>
 
   <script>
     const tg = window.Telegram.WebApp;
@@ -50,17 +81,28 @@
     tg.expand();
 
     try { if (tg.isVersionAtLeast('7.7')) tg.disableVerticalSwipes(); } catch (e) {}
-
     try {
       if (tg.isVersionAtLeast('8.0') && ['ios', 'android'].includes(tg.platform)) {
         tg.requestFullscreen();
       }
     } catch (e) {}
-
     try {
       tg.setBackgroundColor('#ffffff');
       tg.setHeaderColor('#ffffff');
     } catch (e) {}
+
+    // Режим отладки: откройте страницу с ?debug=1 в конце ссылки
+    if (location.search.includes('debug=1')) {
+      const dbg = document.getElementById('dbg');
+      dbg.style.display = 'block';
+      const f = document.getElementById('ppdwi');
+      const log = (t) => { dbg.textContent += t + '\n'; dbg.scrollTop = dbg.scrollHeight; };
+      window.addEventListener('message', (e) => {
+        let d; try { d = typeof e.data === 'string' ? e.data : JSON.stringify(e.data); } catch (_) { d = '?'; }
+        log('msg from ' + e.origin + ': ' + d.slice(0, 200));
+      });
+      setInterval(() => log('iframe h=' + f.offsetHeight + ' style=' + f.getAttribute('style')), 3000);
+    }
   </script>
 
 </body>
